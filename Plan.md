@@ -32,5 +32,19 @@ architecture-beta
     server:R <--> L:website
     user:L --> R:website
 
-
 ```
+
+### Technology
+The project is rather flexible in regards to which technology we choose to use but here is my proposal of the applications tech stack.
+
+#### Frontend
+ - Vue.js frontend hosted on a quick and easy node webserver.
+
+#### Backend
+ - Docker to host the servers image and keep it running.
+ - FastAPI python http server framework for the api structure.
+ - pyodbc package to interact with the SQL server
+ - Pandas package to process the data retrived from the DB
+
+### Hard Requirements
+The project isn't resource intensive however it will require a server to host probably three running docker images for the server, db and the web. 
