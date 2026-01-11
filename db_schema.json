@@ -1,0 +1,140 @@
+{
+  "accounts": {
+    "description": "Accrual accounts data",
+    "columns": [
+      {
+        "name": "Unnamed: 0",
+        "type": "INTEGER",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Authorization Group",
+        "type": "INTEGER",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Bus. Transac. Type",
+        "type": "TEXT",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Calculate Tax",
+        "type": "TEXT",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Cash Flow-Relevant Doc.",
+        "type": "INTEGER",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Cleared Item",
+        "type": "TEXT",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Clearing Date",
+        "type": "TIMESTAMP",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Clearing Entry Date",
+        "type": "TIMESTAMP",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Clearing Fiscal Year",
+        "type": "REAL",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Country Key",
+        "type": "TEXT",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Currency",
+        "type": "TEXT",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Debit/Credit ind",
+        "type": "TEXT",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Transaction Value",
+        "type": "REAL",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Document Is Back-Posted",
+        "type": "TEXT",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Exchange rate",
+        "type": "REAL",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Fiscal Year.1",
+        "type": "REAL",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Fiscal Year.2",
+        "type": "INTEGER",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Posting period.1",
+        "type": "INTEGER",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      },
+      {
+        "name": "Ref. Doc. Line Item",
+        "type": "INTEGER",
+        "nullable": true,
+        "default": null,
+        "primary_key": false
+      }
+    ]
+  }
+}

@@ -14,12 +14,17 @@ if not openai_api_key:
 
 openAIClient = OpenAI(
     api_key=openai_api_key,
-    timeout=30.0 
+    timeout=30.0
 )
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
+@app.get("/test_db_query")
+def read_test_db_query():
+    return tools.ExecuteSQL("accounts", None, "Transaction Value > 1000")
+
 
 @app.post("/chat")
 def handle_chat(body=Body()):
@@ -27,7 +32,7 @@ def handle_chat(body=Body()):
         completion = openAIClient.chat.completions.create(
             model="gpt-4o-mini",
             messages=body["conversationHistory"],
-            tools=tools.getToolSchema()
+            tools=[tools.GetToolSchema()]
         )
 
         result = completion.choices[0].message.content
