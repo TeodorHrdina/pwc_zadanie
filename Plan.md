@@ -16,6 +16,8 @@ A python fastapi server but could be any framework or library. The server itself
 
 The server itself will expose several API endpoints to which the web frontend will connect to. Also by exposing the API endpoints to the whole local network the chat with database could be implemented in other applications used by the employees. If need be auth can also be implemented.
 
+Internally the server will connect to an API endpoint with a set of predefined tools the AI agent can use to interact with the database through the server (SELECT statement only). When an agent decides to use a tool the server executes an SQL prompt basedc on the AI's input and returns a table of information for the agent to work on and reply to user.
+
 How aproximately the architecture should be structured you can find here:
 
 ``` mermaid
@@ -45,6 +47,7 @@ The project is rather flexible in regards to which technology we choose to use b
  - FastAPI python http server framework for the api structure.
  - pyodbc package to interact with the SQL server
  - Pandas package to process the data retrived from the DB
+ - OpenAI package to interact with any compatible AI server. For the demo we will be connecting to official OpenAI servers and using gpt-4o-mini.
 
 ### Hard Requirements
 The project isn't resource intensive however it will require a server to host probably three running docker images for the server, db and the web. 
