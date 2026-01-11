@@ -2,7 +2,7 @@ import json
 import pandas
 import os
 import sqlite3
-from dotenv import load_dotenv
+from typing import List
 
 def getDBConnection(): # Temporary implementation. In deployment to be replaced with real SQL connection.
     dataFrame = pandas.read_excel('Data Dump - Accrual Accounts.xlsx')
