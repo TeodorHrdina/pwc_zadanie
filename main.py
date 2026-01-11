@@ -39,16 +39,6 @@ def handle_chat(body=Body()):
         logger.info("Successfully got response from OpenAI API")
         return result
 
-    except APIConnectionError as e:
-        logger.error(f"API Connection error: {str(e)}")
-        raise HTTPException(status_code=502, detail=f"Connection error to OpenAI service: {str(e)}")
-    except AuthenticationError as e:
-        logger.error(f"Authentication error: {str(e)}")
-        raise HTTPException(status_code=401, detail=f"Authentication error: Invalid API key")
-    except RateLimitError as e:
-        logger.error(f"Rate limit error: {str(e)}")
-        raise HTTPException(status_code=429, detail=f"Rate limit exceeded: {str(e)}")
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
-        # Return a proper error response
-        raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
+        raise e
