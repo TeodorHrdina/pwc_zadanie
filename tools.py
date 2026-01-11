@@ -51,7 +51,7 @@ def PopulateDatabase(Connection):
 def SanitizeInput(InputString: str) -> str:
     DangerousPatterns = [
         ';', '--', '/*', '*/', 'xp_', 'sp_', 'exec', 'execute', 'drop', 'delete',
-        'update', 'insert', 'create', 'alter', 'truncate', 'merge', 'grant', 'revoke'
+        'update', 'insert', 'alter', 'truncate', 'merge', 'grant', 'revoke'
     ]
 
     InputLower = InputString.lower()
