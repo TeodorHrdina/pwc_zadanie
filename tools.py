@@ -14,7 +14,7 @@ def getDBConnection(): # Temporary implementation. In deployment to be replaced 
 # SQL injection through hidden prompts is no bueno
 def sanitizeInput(inputString: str) -> str:
     
-    dangerous_patterns = [
+    dangerousPatterns = [
         ';', '--', '/*', '*/', 'xp_', 'sp_', 'exec', 'execute', 'drop', 'delete',
         'update', 'insert', 'create', 'alter', 'truncate', 'merge', 'grant', 'revoke'
     ]
@@ -31,16 +31,16 @@ def sanitizeInput(inputString: str) -> str:
 def buildSelectQuery(table_name: str, columns: List[str] = None, where_clause: str = None, 
                       order_by: str = None) -> str:
     
-    table_name = sanitize_input(table_name)
+    tableName = sanitizeInput(table_name)
     
     query = f"SELECT {columns_str} FROM {table_name}"
     
     if where_clause:
-        where_clause = sanitize_input(where_clause)
+        where_clause = sanitizeInput(where_clause)
         query += f" WHERE {where_clause}"
     
     if order_by:
-        order_by = sanitize_input(order_by)
+        order_by = sanitizeInput(order_by)
         query += f" ORDER BY {order_by}"
     
     
@@ -61,7 +61,7 @@ def executeSQL(table_name: str, columns: List[str] = None, where_clause: str = N
         cursor = dbConnection.cursor()
         cursor.execute(query)
         
-        columns_info = [column[0] for column in cursor.description]
+        columnsInfo = [column[0] for column in cursor.description]
         
         rows = cursor.fetchall()
         
@@ -78,7 +78,7 @@ def executeSQL(table_name: str, columns: List[str] = None, where_clause: str = N
         conn.close()
 
 
-def get_tool_schema() -> Dict[str, Any]:
+def getToolSchema() -> Dict[str, Any]:
 
     return {
         "name": "select_sql",
