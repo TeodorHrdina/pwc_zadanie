@@ -79,9 +79,22 @@ def QuoteColumnInWhere(WhereClause: str, Connection) -> str:
         for ColumnInformation in ColumnsInformation:
             AllColumns.append(ColumnInformation[1])
 
+    # Sort columns by length in descending order to match longer column names first
+    # This helps prevent partial matches (e.g., matching "Date" in "Clearing Date")
+    AllColumns = sorted(AllColumns, key=len, reverse=True)
+
     ProcessedWhere = WhereClause
     for ColumnName in AllColumns:
-        ProcessedWhere = re.sub(r'\b' + re.escape(ColumnName) + r'\b', f'"{ColumnName}"', ProcessedWhere)
+        # Use word boundaries with special handling for column names that contain spaces
+        # For column names with spaces, we can't use \b, so we'll use a more general approach
+        escaped_name = re.escape(ColumnName)
+        # Match the column name as a whole word/unit, handling cases with/without spaces
+        if ' ' in ColumnName:
+            # For names with spaces, look for the full name surrounded by word boundaries or operators
+            ProcessedWhere = re.sub(r'(?<!\w)(' + escaped_name + r')(?!\w)', f'"{ColumnName}"', ProcessedWhere)
+        else:
+            # For names without spaces, use word boundaries
+            ProcessedWhere = re.sub(r'\b' + escaped_name + r'\b', f'"{ColumnName}"', ProcessedWhere)
 
     return ProcessedWhere
 
@@ -126,6 +139,78 @@ def BuildSelectQuery(TableName: str, Columns: List[str] = None, WhereClause: str
     return Query
 
 
+def ValidateWhereClause(WhereClause: str, TableName: str) -> bool:
+    """
+    Validates the WHERE clause by checking if it contains potentially non-existent column names.
+    This is a heuristic check that looks for column references that might not exist in the table.
+    """
+    if not WhereClause:
+        return True
+
+    DatabaseConnection = GetDatabaseConnection()
+    try:
+        Cursor = DatabaseConnection.cursor()
+        # Get all columns for the table
+        Cursor.execute(f"PRAGMA table_info('{TableName}')")
+        ValidColumns = [row[1] for row in Cursor.fetchall()]
+
+        # Clean up the WhereClause to handle quoted identifiers properly
+        # Remove single and double quotes portions which are usually literals, not columns
+        cleaned_clause = WhereClause
+
+        # Extract potential column names from the where clause by looking for identifiers
+        # This regex finds words that could be column names (ignoring operators, values, etc.)
+        # We'll use a more sophisticated method that considers SQL structure
+        import re
+
+        # This captures potential column names in common SQL patterns like:
+        # column = value, column > value, column BETWEEN value AND value, etc.
+        # Split the clause by SQL operators and look for identifiers
+        # First, remove quoted string literals
+        clause_no_strings = re.sub(r"'[^']*'", '', WhereClause)  # Remove single-quoted strings
+        clause_no_strings = re.sub(r'"[^"]*"', '', clause_no_strings)  # Remove double-quoted strings (but preserve quoted column names)
+
+        # Find potential column names (word-like tokens that could be column names)
+        # We'll look for unquoted identifiers only
+        potential_columns = re.findall(r'\b([a-zA-Z_][a-zA-Z0-9_\.]*)\b', clause_no_strings)
+
+        # Filter out SQL keywords and operators that aren't column names
+        sql_keywords = {
+            'select', 'from', 'where', 'order', 'by', 'group', 'having', 'distinct', 'limit',
+            'and', 'or', 'not', 'in', 'like', 'between', 'is', 'null', 'true', 'false',
+            'as', 'on', 'inner', 'outer', 'left', 'right', 'join', 'union', 'intersect', 'except',
+            'avg', 'count', 'max', 'min', 'sum', 'abs', 'round', 'length', 'upper', 'lower',
+            'datetime', 'date', 'timestamp', 'integer', 'text', 'real', 'numeric', 'varchar',
+            'int', 'bool', 'float', 'double', 'char'
+        }
+
+        potential_columns = [col for col in potential_columns if col.lower() not in sql_keywords]
+
+        for col in potential_columns:
+            if '.' in col:
+                parts = col.split('.', 1)
+                if len(parts) == 2:
+                    # Assuming first part is table alias (could be checked more rigorously)
+                    col_name = parts[1]
+                else:
+                    col_name = parts[0]
+            else:
+                col_name = col
+
+            # For column names with spaces, the AI might provide parts of the name
+            # We need strict matching for full column names
+            if col_name.lower() not in [vc.lower() for vc in ValidColumns]:
+                if len([vc for vc in ValidColumns if col_name.lower() in vc.lower()]) > 0:
+                    similar_cols = [vc for vc in ValidColumns if col_name.lower() in vc.lower()]
+                    raise ValueError(f"Column '{col_name}' not found in table '{TableName}'. Did you mean one of these: {similar_cols}? Valid columns are: {ValidColumns}")
+                else:
+                    raise ValueError(f"Column '{col_name}' not found in table '{TableName}'. Valid columns are: {ValidColumns}")
+
+        return True
+    finally:
+        DatabaseConnection.close()
+
+
 def ExecuteSQL(TableName: str, Columns: List[str] = None, WhereClause: str = None,
                OrderBy: str = None) -> List[Dict[str, Any]]:
 
@@ -137,6 +222,12 @@ def ExecuteSQL(TableName: str, Columns: List[str] = None, WhereClause: str = Non
 
         if TableName not in AvailableTables:
             raise ValueError(f"Table '{TableName}' does not exist in the database. Available tables: {AvailableTables}")
+
+        if WhereClause:
+            ValidateWhereClause(WhereClause, TableName)
+
+        if OrderBy:
+            ValidateWhereClause(OrderBy, TableName)  # Reusing the same validator since logic is similar
 
         Query = BuildSelectQuery(TableName, Columns, WhereClause, OrderBy)
 
@@ -160,8 +251,14 @@ def ExecuteSQL(TableName: str, Columns: List[str] = None, WhereClause: str = Non
 
 
 def GetToolSchema() -> Dict[str, Any]:
+    db_schema = GetTablesSchema()
 
-    return {
+    table_columns = {}
+    for table_name, table_info in db_schema.items():
+        if isinstance(table_info, dict) and "columns" in table_info:
+            table_columns[table_name] = [col["name"] for col in table_info["columns"]]
+
+    schema = {
         "type": "function",
         "function": {
             "name": "selectSQL",
@@ -172,6 +269,7 @@ def GetToolSchema() -> Dict[str, Any]:
                     "TableName": {
                         "type": "string",
                         "description": "Name of the table to query",
+                        "enum": list(table_columns.keys()) if table_columns else ["accounts"]  # fallback to "accounts"
                     },
                     "Columns": {
                         "type": "array",
@@ -195,6 +293,8 @@ def GetToolSchema() -> Dict[str, Any]:
             }
         }
     }
+
+    return schema
 
 
 def GetTablesSchema() -> Dict[str, Any]:
